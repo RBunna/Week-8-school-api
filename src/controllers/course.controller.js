@@ -82,11 +82,9 @@ export const getAllCourses = async (req, res) => {
     const limit = parseInt(req.query.limit) || 10;
     // which page to take
     const page = parseInt(req.query.page) || 1;
-    const orderBy = [ 
-        req.query.orderBy || 'id', 
-        req.query.order || 'asc' 
-    ];
-
+    const orderBy = req.query.orderBy || 'id'
+    const order = req.query.order || 'asc';
+    console.log(req.query.order, req.query.orderBy);
     const total = await db.Course.count();
 
     try {
@@ -94,7 +92,7 @@ export const getAllCourses = async (req, res) => {
             {
                 // include: [db.Student, db.Teacher],
                 limit: limit, offset: (page - 1) * limit,
-                order: orderBy
+                order: [[orderBy, order]]
             }
         );
         res.json({

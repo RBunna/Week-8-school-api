@@ -79,8 +79,8 @@ export const getAllTeachers = async (req, res) => {
     const limit = parseInt(req.query.limit) || 10;
     const page = parseInt(req.query.page) || 1;
     const orderBy = [ 
-        req.query.orderBy || 'id', 
-        req.query.order || 'asc' 
+        [req.query.orderBy || 'id', 
+        req.query.order || 'asc' ]
     ];
 
     const total = await db.Teacher.count();
