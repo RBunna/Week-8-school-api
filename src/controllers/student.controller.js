@@ -22,14 +22,77 @@ export const createStudent = async (req, res) => {
  *   get:
  *     summary: Get all students
  *     tags: [Students]
+ *     parameters:
+ *       - in: query
+ *         name: include
+ *         schema: 
+ *           type: string
+ *           enum: [ course ]
+ *         description: Join other table
+ *       - in: query
+ *         name: page
+ *         schema: { type: integer, default: 1 }
+ *         description: Page number
+ *       - in: query
+ *         name: limit
+ *         schema: { type: integer, default: 10 }
+ *         description: Number of items per page
+ *       - in: query
+ *         name: orderBy
+ *         schema: 
+ *           type: string
+ *           enum: [ id, name, email, createdAt, updatedAt ]
+ *           default: id
+ *         description: Order by
+ *       - in: query
+ *         name: order
+ *         schema: 
+ *           type: string
+ *           enum: [ asc, desc ]
+ *           default: asc
+ *         description: >
+ *           Sorting order:
+ *            * `asc` - Ascending
+ *            * `desc` - Descending
  *     responses:
  *       200:
  *         description: List of students
  */
 export const getAllStudents = async (req, res) => {
+
+    var include = [];
+    switch (req.query.include) {
+        case 'course':
+            include = [db.Course];
+            break;
+        default:
+            include = null
+    }
+
+    const limit = parseInt(req.query.limit) || 10;
+    const page = parseInt(req.query.page) || 1;
+    const orderBy = [ 
+        req.query.orderBy || 'id', 
+        req.query.order || 'asc' 
+    ];
+
+    const total = await db.Student.count();
+
     try {
-        const students = await db.Student.findAll({ include: db.Course });
-        res.json(students);
+        const students = await db.Student.findAll({ 
+            include: include, 
+            limit: limit,
+            offset: (page - 1) * limit,
+            order: orderBy
+        });
+        res.json({
+            meta: {
+                totalItems: total,
+                page: page,
+                totalPages: Math.ceil(total / limit)
+            },
+            data: students
+        });
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
